@@ -1,4 +1,4 @@
-# File Watcher System
+File Watcher System
 
 A Java-based file monitoring project that uses a GUI to track file system events by selected file extension. The project will later include Java WatchService file monitoring and SQLite database support.
 
