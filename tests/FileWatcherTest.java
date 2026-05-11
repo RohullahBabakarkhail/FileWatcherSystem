@@ -1,40 +1,44 @@
 public class FileWatcherTest {
-
     public static void main(String[] args) {
-        System.out.println("Running File Watcher System test...");
+        System.out.println("Running File Watcher System basic test...");
 
-        FileEvent event = new FileEvent(
+        FileEvent sampleEvent = new FileEvent(
                 "sample.txt",
-                "C:\\TestFolder\\sample.txt",
+                "C:\\SampleFolder\\sample.txt",
                 "CREATE",
                 "2026-05-03 3:45 PM"
         );
 
-        System.out.println("File Name: " + event.getFileName());
-        System.out.println("Absolute Path: " + event.getAbsolutePath());
-        System.out.println("Event Type: " + event.getEventType());
-        System.out.println("Event Date/Time: " + event.getEventDateTime());
+        System.out.println("Testing FileEvent:");
+        System.out.println("File Name: " + sampleEvent.getFileName());
+        System.out.println("Absolute Path: " + sampleEvent.getAbsolutePath());
+        System.out.println("Event Type: " + sampleEvent.getEventType());
+        System.out.println("Date/Time: " + sampleEvent.getEventDateTime());
+        System.out.println("Full Event: " + sampleEvent);
 
-        FileMonitor monitor = new FileMonitor("C:\\TestFolder", "txt");
+        FileMonitor monitor = new FileMonitor("C:\\SampleFolder", ".txt");
 
+        System.out.println("\nTesting FileMonitor placeholder:");
         monitor.startMonitoring();
-        System.out.println("Monitoring status after start: " + monitor.isMonitoring());
+        System.out.println("Is Monitoring: " + monitor.isMonitoring());
 
         FileEvent createdEvent = monitor.createEvent(
                 "test.txt",
-                "C:\\TestFolder\\test.txt",
+                "C:\\SampleFolder\\test.txt",
                 "CREATE"
         );
 
         System.out.println("Created Event: " + createdEvent);
 
         monitor.stopMonitoring();
-        System.out.println("Monitoring status after stop: " + monitor.isMonitoring());
+        System.out.println("Is Monitoring: " + monitor.isMonitoring());
 
         DatabaseManager databaseManager = new DatabaseManager("filewatcher.db");
-        databaseManager.connect();
-        databaseManager.saveEvent(event);
 
-        System.out.println("Test completed successfully.");
+        System.out.println("\nTesting DatabaseManager placeholder:");
+        databaseManager.connect();
+        databaseManager.saveEvent(sampleEvent);
+
+        System.out.println("\nBasic test completed successfully.");
     }
 }
