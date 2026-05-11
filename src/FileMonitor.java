@@ -27,4 +27,12 @@ public class FileMonitor {
     public boolean isMonitoring() {
         return isMonitoring;
     }
+
+    public String getDirectoryPath() {
+        return directoryPath;
+    }
+
+    public String getExtensionFilter() {
+        return extensionFilter;
+    }
 }
