@@ -9,11 +9,14 @@ public class MainWindow extends JFrame {
     private JTextField directoryField;
     private JComboBox<String> extensionComboBox;
     private JTextArea eventDisplayArea;
+
     private JButton startButton;
     private JButton stopButton;
     private JButton saveButton;
     private JButton browseButton;
     private JButton sampleEventButton;
+
+    private JLabel eventCountLabel;
 
     private List<FileEvent> displayedEvents;
     private FileMonitor fileMonitor;
@@ -94,17 +97,17 @@ public class MainWindow extends JFrame {
         startButton = new JButton("Start");
         stopButton = new JButton("Stop");
         saveButton = new JButton("Write DB");
-        sampleEventButton = new JButton("Sample Event");
+        sampleEventButton = new JButton("Sample Events");
 
         startButton.setToolTipText("Start monitoring placeholder");
         stopButton.setToolTipText("Stop monitoring placeholder");
         saveButton.setToolTipText("Write current events to database placeholder");
-        sampleEventButton.setToolTipText("Display a sample file event");
+        sampleEventButton.setToolTipText("Display sample file events");
 
         startButton.addActionListener(e -> startMonitoring());
         stopButton.addActionListener(e -> stopMonitoring());
         saveButton.addActionListener(e -> saveEvents());
-        sampleEventButton.addActionListener(e -> addSampleEvent());
+        sampleEventButton.addActionListener(e -> addSampleEvents());
 
         stopButton.setEnabled(false);
 
@@ -118,14 +121,14 @@ public class MainWindow extends JFrame {
 
     private void createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-
         JPanel inputPanel = new JPanel(new GridBagLayout());
+
         GridBagConstraints gbc = new GridBagConstraints();
 
         JLabel directoryLabel = new JLabel("Directory to Monitor:");
         directoryField = new JTextField();
-        browseButton = new JButton("Browse");
 
+        browseButton = new JButton("Browse");
         browseButton.addActionListener(e -> browseDirectory());
 
         JLabel extensionLabel = new JLabel("File Extension:");
@@ -169,11 +172,18 @@ public class MainWindow extends JFrame {
 
         eventDisplayArea = new JTextArea();
         eventDisplayArea.setEditable(false);
-        eventDisplayArea.setText("File Watcher System ready.\nSelect a directory and extension, then click Start.\n");
+        eventDisplayArea.setText(
+                "File Watcher System ready.\n" +
+                        "Choose a directory, select an extension, and click Start.\n" +
+                        "Iteration 3 includes validation, sample event display, and event count.\n"
+        );
+
+        eventCountLabel = new JLabel("Event Count: 0");
 
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panel.add(inputPanel, BorderLayout.NORTH);
         panel.add(new JScrollPane(eventDisplayArea), BorderLayout.CENTER);
+        panel.add(eventCountLabel, BorderLayout.SOUTH);
 
         add(panel, BorderLayout.CENTER);
     }
@@ -192,23 +202,55 @@ public class MainWindow extends JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFolder = chooser.getSelectedFile();
             directoryField.setText(selectedFolder.getAbsolutePath());
-            eventDisplayArea.append("Selected directory: " + selectedFolder.getAbsolutePath() + "\n");
+            eventDisplayArea.append("\nSelected directory:\n");
+            eventDisplayArea.append(selectedFolder.getAbsolutePath() + "\n");
         } else {
-            eventDisplayArea.append("Directory selection canceled.\n");
+            eventDisplayArea.append("\nDirectory selection canceled.\n");
         }
     }
 
-    private void startMonitoring() {
-        String directory = directoryField.getText();
-        String extension = extensionComboBox.getSelectedItem().toString();
-
-        if (directory.isEmpty()) {
+    private boolean isDirectoryValid(String directoryPath) {
+        if (directoryPath == null || directoryPath.trim().isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
                     "Please choose or enter a directory first.",
                     "Missing Directory",
                     JOptionPane.WARNING_MESSAGE
             );
+            return false;
+        }
+
+        File directory = new File(directoryPath);
+
+        if (!directory.exists()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "The selected directory does not exist.",
+                    "Invalid Directory",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return false;
+        }
+
+        if (!directory.isDirectory()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "The selected path is not a folder.",
+                    "Invalid Directory",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return false;
+        }
+
+        return true;
+    }
+
+    private void startMonitoring() {
+        String directory = directoryField.getText().trim();
+        String extension = extensionComboBox.getSelectedItem().toString();
+
+        if (!isDirectoryValid(directory)) {
+            eventDisplayArea.append("\nMonitoring could not start because the directory is invalid.\n");
             return;
         }
 
@@ -218,10 +260,10 @@ public class MainWindow extends JFrame {
         startButton.setEnabled(false);
         stopButton.setEnabled(true);
 
-        eventDisplayArea.append("Monitoring started...\n");
+        eventDisplayArea.append("\nMonitoring started...\n");
         eventDisplayArea.append("Directory: " + directory + "\n");
         eventDisplayArea.append("Extension: " + extension + "\n");
-        eventDisplayArea.append("Note: Real file monitoring will be completed in a later iteration.\n");
+        eventDisplayArea.append("Note: Real-time file monitoring will be completed in a later iteration.\n");
     }
 
     private void stopMonitoring() {
@@ -232,22 +274,64 @@ public class MainWindow extends JFrame {
         startButton.setEnabled(true);
         stopButton.setEnabled(false);
 
-        eventDisplayArea.append("Monitoring stopped...\n");
+        eventDisplayArea.append("\nMonitoring stopped...\n");
     }
 
-    private void addSampleEvent() {
-        FileEvent event = new FileEvent(
-                "sample.txt",
-                "C:\\SampleFolder\\sample.txt",
+    private void addSampleEvents() {
+        FileEvent createEvent = new FileEvent(
+                "sample-create.txt",
+                "C:\\SampleFolder\\sample-create.txt",
                 "CREATE",
                 LocalDateTime.now().toString()
         );
 
-        displayedEvents.add(event);
-        eventDisplayArea.append("Sample Event: " + event + "\n");
+        FileEvent modifyEvent = new FileEvent(
+                "sample-modify.txt",
+                "C:\\SampleFolder\\sample-modify.txt",
+                "MODIFY",
+                LocalDateTime.now().toString()
+        );
+
+        FileEvent deleteEvent = new FileEvent(
+                "sample-delete.txt",
+                "C:\\SampleFolder\\sample-delete.txt",
+                "DELETE",
+                LocalDateTime.now().toString()
+        );
+
+        displayedEvents.add(createEvent);
+        displayedEvents.add(modifyEvent);
+        displayedEvents.add(deleteEvent);
+
+        eventDisplayArea.append("\nSample File Events Added:\n");
+        displayFormattedEvent(createEvent);
+        displayFormattedEvent(modifyEvent);
+        displayFormattedEvent(deleteEvent);
+
+        updateEventCount();
+    }
+
+    private void displayFormattedEvent(FileEvent event) {
+        eventDisplayArea.append("------------------------------\n");
+        eventDisplayArea.append("File Name: " + event.getFileName() + "\n");
+        eventDisplayArea.append("Path: " + event.getAbsolutePath() + "\n");
+        eventDisplayArea.append("Event Type: " + event.getEventType() + "\n");
+        eventDisplayArea.append("Date/Time: " + event.getEventDateTime() + "\n");
+    }
+
+    private void updateEventCount() {
+        eventCountLabel.setText("Event Count: " + displayedEvents.size());
+        eventDisplayArea.append("Current Event Count: " + displayedEvents.size() + "\n");
     }
 
     private void saveEvents() {
+        if (displayedEvents.isEmpty()) {
+            eventDisplayArea.append("\nWrite DB clicked, but there are no events to save yet.\n");
+            eventDisplayArea.append("Event Count: 0\n");
+            eventDisplayArea.append("Add sample events first or wait for real monitoring in a later iteration.\n");
+            return;
+        }
+
         DatabaseManager databaseManager = new DatabaseManager("filewatcher.db");
         databaseManager.connect();
 
@@ -255,8 +339,11 @@ public class MainWindow extends JFrame {
             databaseManager.saveEvent(event);
         }
 
-        eventDisplayArea.append("Write DB clicked. Database saving is currently a placeholder.\n");
-        eventDisplayArea.append("Number of sample events prepared for saving: " + displayedEvents.size() + "\n");
+        eventDisplayArea.append("\nWrite DB clicked.\n");
+        eventDisplayArea.append("Placeholder save completed for " + displayedEvents.size() + " event(s).\n");
+        eventDisplayArea.append("Real SQLite saving will be completed in a later iteration.\n");
+
+        updateEventCount();
     }
 
     private void openQueryWindow() {
@@ -268,17 +355,21 @@ public class MainWindow extends JFrame {
         JOptionPane.showMessageDialog(
                 this,
                 "File Watcher System\n" +
-                        "Version 2.0 - Iteration 2\n\n" +
+                        "Version 3.0 - Iteration 3\n\n" +
                         "Developers:\n" +
                         "Rohullah Babakarkhail\n" +
                         "Kalsoom Babakarkhail\n\n" +
-                        "Usage:\n" +
-                        "1. Choose a directory.\n" +
-                        "2. Select or type a file extension.\n" +
-                        "3. Click Start to begin monitoring placeholder behavior.\n" +
-                        "4. Click Stop to stop monitoring.\n" +
-                        "5. Use Sample Event to test event display.\n\n" +
-                        "Note: Full file monitoring and SQLite database features will be completed in later iterations.",
+                        "Current Features:\n" +
+                        "- Browse button for folder selection\n" +
+                        "- Directory validation\n" +
+                        "- Placeholder Start and Stop monitoring behavior\n" +
+                        "- Sample CREATE, MODIFY, and DELETE file events\n" +
+                        "- Basic event count display\n" +
+                        "- Placeholder database save message\n\n" +
+                        "Future Features:\n" +
+                        "- Real-time Java WatchService monitoring\n" +
+                        "- SQLite database saving\n" +
+                        "- Real database query results",
                 "About",
                 JOptionPane.INFORMATION_MESSAGE
         );
