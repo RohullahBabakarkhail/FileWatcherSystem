@@ -29,6 +29,9 @@ public class FileEvent {
 
     @Override
     public String toString() {
-        return eventDateTime + " | " + eventType + " | " + fileName + " | " + absolutePath;
+        return "File: " + fileName +
+                "\nPath: " + absolutePath +
+                "\nEvent: " + eventType +
+                "\nDate/Time: " + eventDateTime;
     }
 }
