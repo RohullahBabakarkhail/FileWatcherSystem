@@ -1,8 +1,7 @@
 A Java-based file monitoring project that uses a GUI to track file system events by selected file extension.
 
 Team member names:
-Rohullah Babakarkhail
-Kalsoom Babakarkhail
+Rohullah Babakarkhail, Kalsoom Babakarkhail
 
 Iteration 3 Summary:
 During Iteration 3, we continued improving the File Watcher System by adding more beginner-level functionality. We improved directory selection, added directory validation, improved Start and Stop button behavior, displayed formatted sample file events, added an event count display, and improved placeholder database behavior. The project is still not the final version, but it now shows more working GUI behavior and better progress toward the final requirements.
