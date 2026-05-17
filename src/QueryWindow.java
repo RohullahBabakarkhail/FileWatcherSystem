@@ -17,6 +17,8 @@ public class QueryWindow extends JFrame {
 
         createMenuBar();
         createMainPanel();
+
+        setLocationRelativeTo(null);
     }
 
     private void createMenuBar() {
@@ -62,7 +64,11 @@ public class QueryWindow extends JFrame {
 
         resultsArea = new JTextArea();
         resultsArea.setEditable(false);
-        resultsArea.setText("Query Database Window\nSearch features will be completed in a later iteration.\n");
+        resultsArea.setText(
+                "Query Database Window\n" +
+                        "This is a placeholder for Iteration 3.\n" +
+                        "Real database search results will be added in a later iteration.\n"
+        );
 
         add(topPanel, BorderLayout.NORTH);
         add(new JScrollPane(resultsArea), BorderLayout.CENTER);
@@ -73,13 +79,14 @@ public class QueryWindow extends JFrame {
         String queryType = queryTypeBox.getSelectedItem().toString();
         String value = searchField.getText();
 
-        resultsArea.append("Search clicked.\n");
+        resultsArea.append("\nSearch clicked.\n");
         resultsArea.append("Query Type: " + queryType + "\n");
         resultsArea.append("Search Value: " + value + "\n");
-        resultsArea.append("Note: Real database search will be added in a later iteration.\n\n");
+        resultsArea.append("Placeholder only. Real SQLite query logic will be added later.\n");
     }
 
     private void clearDatabasePlaceholder() {
-        resultsArea.append("Clear Database clicked. This is currently a placeholder.\n");
+        resultsArea.append("\nClear Database clicked.\n");
+        resultsArea.append("Placeholder only. Real database clearing will be added later.\n");
     }
 }
