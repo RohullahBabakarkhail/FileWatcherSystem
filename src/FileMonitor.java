@@ -12,6 +12,7 @@ public class FileMonitor {
     public void startMonitoring() {
         isMonitoring = true;
         System.out.println("Monitoring started for: " + directoryPath);
+        System.out.println("Extension filter: " + extensionFilter);
     }
 
     public void stopMonitoring() {
