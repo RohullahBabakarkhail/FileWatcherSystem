@@ -1,5 +1,4 @@
 
-
 A Java-based file monitoring project that uses a GUI to track file events by selected file extension.
 
 Team member names:
