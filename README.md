@@ -2,7 +2,7 @@ A Java-based file monitoring project that uses a GUI to track file events by sel
 
 Team member names:
 
-Rohullah Babakarkhail
+Rohullah Babakarkhail,
 Kalsoom Babakarkhail
 
 Iteration 4 Summary:
