@@ -49,10 +49,13 @@ public class QueryWindow extends JFrame {
                 "Event Type",
                 "Date"
         });
+        queryTypeBox.setToolTipText("Choose the type of database query to run later.");
 
         searchField = new JTextField();
+        searchField.setToolTipText("Enter the value to search for.");
 
         JButton searchButton = new JButton("Search");
+        searchButton.setToolTipText("Placeholder search button for future database queries.");
         searchButton.addActionListener(e -> searchPlaceholder());
 
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -64,10 +67,11 @@ public class QueryWindow extends JFrame {
 
         resultsArea = new JTextArea();
         resultsArea.setEditable(false);
+        resultsArea.setToolTipText("Future database query results will appear here.");
         resultsArea.setText(
                 "Query Database Window\n" +
-                        "This is a placeholder for Iteration 3.\n" +
-                        "Real database search results will be added in a later iteration.\n"
+                        "Iteration 4 placeholder.\n" +
+                        "Real SQLite query results will be added in a later iteration.\n"
         );
 
         add(topPanel, BorderLayout.NORTH);
