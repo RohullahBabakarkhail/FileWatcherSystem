@@ -10,6 +10,7 @@ Iteration 4 Summary:
 During Iteration 4, we added basic WatchService setup, connected the selected directory and extension to FileMonitor, improved sample event creation, added a Clear Events button, improved the event display area, and updated the About window and tooltips.
 
 Completed work:
+
 Added basic WatchService setup
 Connected FileMonitor to the selected directory
 Improved extension filtering
