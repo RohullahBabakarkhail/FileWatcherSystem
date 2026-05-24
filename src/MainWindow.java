@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +14,7 @@ public class MainWindow extends JFrame {
     private JButton saveButton;
     private JButton browseButton;
     private JButton sampleEventButton;
+    private JButton clearEventsButton;
 
     private JLabel eventCountLabel;
 
@@ -28,7 +28,7 @@ public class MainWindow extends JFrame {
 
     private void setupWindow() {
         setTitle("File Watcher System");
-        setSize(850, 550);
+        setSize(950, 625);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -55,6 +55,7 @@ public class MainWindow extends JFrame {
         JMenuItem exitItem = new JMenuItem("Exit");
         JMenuItem startItem = new JMenuItem("Start Monitoring");
         JMenuItem stopItem = new JMenuItem("Stop Monitoring");
+        JMenuItem clearEventsItem = new JMenuItem("Clear Events");
         JMenuItem saveItem = new JMenuItem("Write to Database");
         JMenuItem queryItem = new JMenuItem("Query Database");
         JMenuItem aboutItem = new JMenuItem("About");
@@ -62,6 +63,7 @@ public class MainWindow extends JFrame {
         exitItem.setAccelerator(KeyStroke.getKeyStroke("ctrl E"));
         startItem.setAccelerator(KeyStroke.getKeyStroke("ctrl S"));
         stopItem.setAccelerator(KeyStroke.getKeyStroke("ctrl T"));
+        clearEventsItem.setAccelerator(KeyStroke.getKeyStroke("ctrl L"));
         saveItem.setAccelerator(KeyStroke.getKeyStroke("ctrl W"));
         queryItem.setAccelerator(KeyStroke.getKeyStroke("ctrl Q"));
         aboutItem.setAccelerator(KeyStroke.getKeyStroke("ctrl H"));
@@ -69,6 +71,7 @@ public class MainWindow extends JFrame {
         exitItem.addActionListener(e -> handleExit());
         startItem.addActionListener(e -> startMonitoring());
         stopItem.addActionListener(e -> stopMonitoring());
+        clearEventsItem.addActionListener(e -> clearEvents());
         saveItem.addActionListener(e -> saveEvents());
         queryItem.addActionListener(e -> openQueryWindow());
         aboutItem.addActionListener(e -> showAbout());
@@ -77,6 +80,7 @@ public class MainWindow extends JFrame {
 
         watcherMenu.add(startItem);
         watcherMenu.add(stopItem);
+        watcherMenu.add(clearEventsItem);
 
         databaseMenu.add(saveItem);
         databaseMenu.add(queryItem);
@@ -98,16 +102,19 @@ public class MainWindow extends JFrame {
         stopButton = new JButton("Stop");
         saveButton = new JButton("Write DB");
         sampleEventButton = new JButton("Sample Events");
+        clearEventsButton = new JButton("Clear Events");
 
-        startButton.setToolTipText("Start monitoring placeholder");
-        stopButton.setToolTipText("Stop monitoring placeholder");
-        saveButton.setToolTipText("Write current events to database placeholder");
-        sampleEventButton.setToolTipText("Display sample file events");
+        startButton.setToolTipText("Start basic file monitoring setup for the selected directory.");
+        stopButton.setToolTipText("Stop the current monitoring session.");
+        saveButton.setToolTipText("Placeholder for saving displayed events to SQLite later.");
+        sampleEventButton.setToolTipText("Add sample CREATE, MODIFY, and DELETE file events.");
+        clearEventsButton.setToolTipText("Clear all displayed events and reset the event count.");
 
         startButton.addActionListener(e -> startMonitoring());
         stopButton.addActionListener(e -> stopMonitoring());
         saveButton.addActionListener(e -> saveEvents());
         sampleEventButton.addActionListener(e -> addSampleEvents());
+        clearEventsButton.addActionListener(e -> clearEvents());
 
         stopButton.setEnabled(false);
 
@@ -115,6 +122,7 @@ public class MainWindow extends JFrame {
         toolBar.add(stopButton);
         toolBar.add(saveButton);
         toolBar.add(sampleEventButton);
+        toolBar.add(clearEventsButton);
 
         add(toolBar, BorderLayout.NORTH);
     }
@@ -126,12 +134,18 @@ public class MainWindow extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
 
         JLabel directoryLabel = new JLabel("Directory to Monitor:");
+        directoryLabel.setToolTipText("Choose the folder that the File Watcher System will monitor.");
+
         directoryField = new JTextField();
+        directoryField.setToolTipText("Selected folder path appears here.");
 
         browseButton = new JButton("Browse");
+        browseButton.setToolTipText("Click to choose a folder from your computer.");
         browseButton.addActionListener(e -> browseDirectory());
 
         JLabel extensionLabel = new JLabel("File Extension:");
+        extensionLabel.setToolTipText("Choose or type the file extension to watch.");
+
         extensionComboBox = new JComboBox<>(new String[]{
                 ".txt",
                 ".java",
@@ -141,8 +155,9 @@ public class MainWindow extends JFrame {
                 "All Files"
         });
         extensionComboBox.setEditable(true);
+        extensionComboBox.setToolTipText("Choose a file extension or type your own, such as .png or .html.");
 
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0;
@@ -172,15 +187,21 @@ public class MainWindow extends JFrame {
 
         eventDisplayArea = new JTextArea();
         eventDisplayArea.setEditable(false);
+        eventDisplayArea.setToolTipText("File events and program messages will appear here.");
         eventDisplayArea.setText(
                 "File Watcher System ready.\n" +
-                        "Choose a directory, select an extension, and click Start.\n" +
-                        "Iteration 3 includes validation, sample event display, and event count.\n"
+                        "Iteration 4 adds basic WatchService setup, improved tooltips, and clearer event controls.\n\n" +
+                        "Steps:\n" +
+                        "1. Click Browse to choose a folder.\n" +
+                        "2. Select or type a file extension.\n" +
+                        "3. Click Start to begin basic monitoring setup.\n" +
+                        "4. Click Sample Events to test event display.\n"
         );
 
         eventCountLabel = new JLabel("Event Count: 0");
+        eventCountLabel.setToolTipText("Shows how many file events are currently displayed.");
 
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         panel.add(inputPanel, BorderLayout.NORTH);
         panel.add(new JScrollPane(eventDisplayArea), BorderLayout.CENTER);
         panel.add(eventCountLabel, BorderLayout.SOUTH);
@@ -260,10 +281,11 @@ public class MainWindow extends JFrame {
         startButton.setEnabled(false);
         stopButton.setEnabled(true);
 
-        eventDisplayArea.append("\nMonitoring started...\n");
+        eventDisplayArea.append("\nMonitoring started.\n");
         eventDisplayArea.append("Directory: " + directory + "\n");
         eventDisplayArea.append("Extension: " + extension + "\n");
-        eventDisplayArea.append("Note: Real-time file monitoring will be completed in a later iteration.\n");
+        eventDisplayArea.append("Basic WatchService setup is now connected.\n");
+        eventDisplayArea.append("Real-time event loop will be improved in a later iteration.\n");
     }
 
     private void stopMonitoring() {
@@ -274,36 +296,28 @@ public class MainWindow extends JFrame {
         startButton.setEnabled(true);
         stopButton.setEnabled(false);
 
-        eventDisplayArea.append("\nMonitoring stopped...\n");
+        eventDisplayArea.append("\nMonitoring stopped.\n");
     }
 
     private void addSampleEvents() {
-        FileEvent createEvent = new FileEvent(
-                "sample-create.txt",
-                "C:\\SampleFolder\\sample-create.txt",
-                "CREATE",
-                LocalDateTime.now().toString()
-        );
+        String directory = directoryField.getText().trim();
+        String extension = extensionComboBox.getSelectedItem().toString();
 
-        FileEvent modifyEvent = new FileEvent(
-                "sample-modify.txt",
-                "C:\\SampleFolder\\sample-modify.txt",
-                "MODIFY",
-                LocalDateTime.now().toString()
-        );
+        if (directory.isEmpty()) {
+            directory = "C:\\SampleFolder";
+        }
 
-        FileEvent deleteEvent = new FileEvent(
-                "sample-delete.txt",
-                "C:\\SampleFolder\\sample-delete.txt",
-                "DELETE",
-                LocalDateTime.now().toString()
-        );
+        FileMonitor sampleMonitor = new FileMonitor(directory, extension);
+
+        FileEvent createEvent = sampleMonitor.createSampleMonitoredEvent("CREATE");
+        FileEvent modifyEvent = sampleMonitor.createSampleMonitoredEvent("MODIFY");
+        FileEvent deleteEvent = sampleMonitor.createSampleMonitoredEvent("DELETE");
 
         displayedEvents.add(createEvent);
         displayedEvents.add(modifyEvent);
         displayedEvents.add(deleteEvent);
 
-        eventDisplayArea.append("\nSample File Events Added:\n");
+        eventDisplayArea.append("\nSample monitored events added:\n");
         displayFormattedEvent(createEvent);
         displayFormattedEvent(modifyEvent);
         displayFormattedEvent(deleteEvent);
@@ -324,11 +338,24 @@ public class MainWindow extends JFrame {
         eventDisplayArea.append("Current Event Count: " + displayedEvents.size() + "\n");
     }
 
+    private void clearEvents() {
+        displayedEvents.clear();
+        eventDisplayArea.setText(
+                "Events cleared.\n\n" +
+                        "Steps:\n" +
+                        "1. Click Browse to choose a folder.\n" +
+                        "2. Select or type a file extension.\n" +
+                        "3. Click Start to begin basic monitoring setup.\n" +
+                        "4. Click Sample Events to test event display.\n"
+        );
+        eventCountLabel.setText("Event Count: 0");
+    }
+
     private void saveEvents() {
         if (displayedEvents.isEmpty()) {
             eventDisplayArea.append("\nWrite DB clicked, but there are no events to save yet.\n");
             eventDisplayArea.append("Event Count: 0\n");
-            eventDisplayArea.append("Add sample events first or wait for real monitoring in a later iteration.\n");
+            eventDisplayArea.append("Real SQLite saving will be completed in a later iteration.\n");
             return;
         }
 
@@ -355,19 +382,23 @@ public class MainWindow extends JFrame {
         JOptionPane.showMessageDialog(
                 this,
                 "File Watcher System\n" +
-                        "Version 3.0 - Iteration 3\n\n" +
+                        "Version 4.0 - Iteration 4\n\n" +
                         "Developers:\n" +
                         "Rohullah Babakarkhail\n" +
                         "Kalsoom Babakarkhail\n\n" +
                         "Current Features:\n" +
+                        "- GUI with menu strip and toolbar buttons\n" +
+                        "- Improved labels and tooltips\n" +
                         "- Browse button for folder selection\n" +
                         "- Directory validation\n" +
-                        "- Placeholder Start and Stop monitoring behavior\n" +
-                        "- Sample CREATE, MODIFY, and DELETE file events\n" +
-                        "- Basic event count display\n" +
+                        "- Basic WatchService setup\n" +
+                        "- Extension filter value passed to FileMonitor\n" +
+                        "- Sample CREATE, MODIFY, and DELETE events\n" +
+                        "- Clear Events button\n" +
+                        "- Event count display\n" +
                         "- Placeholder database save message\n\n" +
                         "Future Features:\n" +
-                        "- Real-time Java WatchService monitoring\n" +
+                        "- Full real-time event monitoring loop\n" +
                         "- SQLite database saving\n" +
                         "- Real database query results",
                 "About",
