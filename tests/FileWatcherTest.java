@@ -1,60 +1,41 @@
 public class FileWatcherTest {
     public static void main(String[] args) {
-        System.out.println("Running File Watcher System Iteration 3 test...");
-
-        FileEvent createEvent = new FileEvent(
-                "sample-create.txt",
-                "C:\\SampleFolder\\sample-create.txt",
-                "CREATE",
-                "2026-05-10 7:30 PM"
-        );
-
-        FileEvent modifyEvent = new FileEvent(
-                "sample-modify.txt",
-                "C:\\SampleFolder\\sample-modify.txt",
-                "MODIFY",
-                "2026-05-10 7:31 PM"
-        );
-
-        FileEvent deleteEvent = new FileEvent(
-                "sample-delete.txt",
-                "C:\\SampleFolder\\sample-delete.txt",
-                "DELETE",
-                "2026-05-10 7:32 PM"
-        );
-
-        int eventCount = 0;
-
-        System.out.println("\nTesting FileEvent objects:");
-        printEvent(createEvent);
-        eventCount++;
-
-        printEvent(modifyEvent);
-        eventCount++;
-
-        printEvent(deleteEvent);
-        eventCount++;
-
-        System.out.println("\nTotal sample events created: " + eventCount);
+        System.out.println("Running File Watcher System Iteration 4 test...");
 
         FileMonitor monitor = new FileMonitor("C:\\SampleFolder", ".txt");
 
-        System.out.println("\nTesting FileMonitor placeholder:");
-        monitor.startMonitoring();
+        System.out.println("\nTesting FileMonitor setup:");
         System.out.println("Directory: " + monitor.getDirectoryPath());
         System.out.println("Extension: " + monitor.getExtensionFilter());
-        System.out.println("Is Monitoring: " + monitor.isMonitoring());
+        System.out.println("Matches sample.txt: " + monitor.matchesExtension("sample.txt"));
+        System.out.println("Matches sample.java: " + monitor.matchesExtension("sample.java"));
 
-        FileEvent monitorCreatedEvent = monitor.createEvent(
-                "monitor-test.txt",
-                "C:\\SampleFolder\\monitor-test.txt",
+        FileEvent createEvent = monitor.createEvent(
+                "sample-create.txt",
+                "C:\\SampleFolder\\sample-create.txt",
                 "CREATE"
         );
 
-        System.out.println("\nCreated by FileMonitor:");
-        printEvent(monitorCreatedEvent);
-        eventCount++;
+        FileEvent modifyEvent = monitor.createEvent(
+                "sample-modify.txt",
+                "C:\\SampleFolder\\sample-modify.txt",
+                "MODIFY"
+        );
 
+        FileEvent deleteEvent = monitor.createEvent(
+                "sample-delete.txt",
+                "C:\\SampleFolder\\sample-delete.txt",
+                "DELETE"
+        );
+
+        System.out.println("\nTesting FileEvent objects:");
+        printEvent(createEvent);
+        printEvent(modifyEvent);
+        printEvent(deleteEvent);
+
+        System.out.println("\nTesting monitor start/stop placeholder:");
+        monitor.startMonitoring();
+        System.out.println("Is Monitoring: " + monitor.isMonitoring());
         monitor.stopMonitoring();
         System.out.println("Is Monitoring: " + monitor.isMonitoring());
 
@@ -66,8 +47,7 @@ public class FileWatcherTest {
         databaseManager.saveEvent(modifyEvent);
         databaseManager.saveEvent(deleteEvent);
 
-        System.out.println("\nEvents that would be saved: " + eventCount);
-        System.out.println("\nIteration 3 basic test completed successfully.");
+        System.out.println("\nIteration 4 basic test completed successfully.");
     }
 
     private static void printEvent(FileEvent event) {
