@@ -13,6 +13,7 @@ During Iteration 5, we moved the File Watcher System closer to the final version
 Completed work:
 
 Implemented real WatchService monitoring loop
+
 Displayed real monitored events in the GUI
 Applied extension filtering to file events
 Saved file events to SQLite database
