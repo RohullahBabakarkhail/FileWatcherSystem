@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainWindow extends JFrame {
+public class MainWindow extends JFrame implements FileEventListener {
     private JTextField directoryField;
     private JComboBox<String> extensionComboBox;
     private JTextArea eventDisplayArea;
@@ -20,9 +20,11 @@ public class MainWindow extends JFrame {
 
     private List<FileEvent> displayedEvents;
     private FileMonitor fileMonitor;
+    private boolean hasUnsavedEvents;
 
     public MainWindow() {
         displayedEvents = new ArrayList<>();
+        hasUnsavedEvents = false;
         setupWindow();
     }
 
@@ -104,9 +106,9 @@ public class MainWindow extends JFrame {
         sampleEventButton = new JButton("Sample Events");
         clearEventsButton = new JButton("Clear Events");
 
-        startButton.setToolTipText("Start basic file monitoring setup for the selected directory.");
+        startButton.setToolTipText("Start real file monitoring for the selected directory.");
         stopButton.setToolTipText("Stop the current monitoring session.");
-        saveButton.setToolTipText("Placeholder for saving displayed events to SQLite later.");
+        saveButton.setToolTipText("Save displayed events to SQLite database.");
         sampleEventButton.setToolTipText("Add sample CREATE, MODIFY, and DELETE file events.");
         clearEventsButton.setToolTipText("Clear all displayed events and reset the event count.");
 
@@ -134,18 +136,12 @@ public class MainWindow extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
 
         JLabel directoryLabel = new JLabel("Directory to Monitor:");
-        directoryLabel.setToolTipText("Choose the folder that the File Watcher System will monitor.");
-
         directoryField = new JTextField();
-        directoryField.setToolTipText("Selected folder path appears here.");
 
         browseButton = new JButton("Browse");
-        browseButton.setToolTipText("Click to choose a folder from your computer.");
         browseButton.addActionListener(e -> browseDirectory());
 
         JLabel extensionLabel = new JLabel("File Extension:");
-        extensionLabel.setToolTipText("Choose or type the file extension to watch.");
-
         extensionComboBox = new JComboBox<>(new String[]{
                 ".txt",
                 ".java",
@@ -155,7 +151,6 @@ public class MainWindow extends JFrame {
                 "All Files"
         });
         extensionComboBox.setEditable(true);
-        extensionComboBox.setToolTipText("Choose a file extension or type your own, such as .png or .html.");
 
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -187,19 +182,17 @@ public class MainWindow extends JFrame {
 
         eventDisplayArea = new JTextArea();
         eventDisplayArea.setEditable(false);
-        eventDisplayArea.setToolTipText("File events and program messages will appear here.");
         eventDisplayArea.setText(
                 "File Watcher System ready.\n" +
-                        "Iteration 4 adds basic WatchService setup, improved tooltips, and clearer event controls.\n\n" +
+                        "Iteration 5 adds real monitoring and SQLite save/query support.\n\n" +
                         "Steps:\n" +
                         "1. Click Browse to choose a folder.\n" +
                         "2. Select or type a file extension.\n" +
-                        "3. Click Start to begin basic monitoring setup.\n" +
-                        "4. Click Sample Events to test event display.\n"
+                        "3. Click Start to begin real monitoring.\n" +
+                        "4. Create, modify, or delete a matching file in the folder.\n"
         );
 
         eventCountLabel = new JLabel("Event Count: 0");
-        eventCountLabel.setToolTipText("Shows how many file events are currently displayed.");
 
         panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         panel.add(inputPanel, BorderLayout.NORTH);
@@ -232,34 +225,19 @@ public class MainWindow extends JFrame {
 
     private boolean isDirectoryValid(String directoryPath) {
         if (directoryPath == null || directoryPath.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Please choose or enter a directory first.",
-                    "Missing Directory",
-                    JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "Please choose or enter a directory first.");
             return false;
         }
 
         File directory = new File(directoryPath);
 
         if (!directory.exists()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "The selected directory does not exist.",
-                    "Invalid Directory",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "The selected directory does not exist.");
             return false;
         }
 
         if (!directory.isDirectory()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "The selected path is not a folder.",
-                    "Invalid Directory",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "The selected path is not a folder.");
             return false;
         }
 
@@ -275,7 +253,7 @@ public class MainWindow extends JFrame {
             return;
         }
 
-        fileMonitor = new FileMonitor(directory, extension);
+        fileMonitor = new FileMonitor(directory, extension, this);
         fileMonitor.startMonitoring();
 
         startButton.setEnabled(false);
@@ -284,8 +262,6 @@ public class MainWindow extends JFrame {
         eventDisplayArea.append("\nMonitoring started.\n");
         eventDisplayArea.append("Directory: " + directory + "\n");
         eventDisplayArea.append("Extension: " + extension + "\n");
-        eventDisplayArea.append("Basic WatchService setup is now connected.\n");
-        eventDisplayArea.append("Real-time event loop will be improved in a later iteration.\n");
     }
 
     private void stopMonitoring() {
@@ -295,29 +271,57 @@ public class MainWindow extends JFrame {
 
         startButton.setEnabled(true);
         stopButton.setEnabled(false);
+    }
 
-        eventDisplayArea.append("\nMonitoring stopped.\n");
+    @Override
+    public void onFileEvent(FileEvent event) {
+        displayedEvents.add(event);
+        hasUnsavedEvents = true;
+
+        eventDisplayArea.append("\nReal monitored event detected:\n");
+        displayFormattedEvent(event);
+        updateEventCount();
+    }
+
+    @Override
+    public void onMonitorMessage(String message) {
+        eventDisplayArea.append("\n" + message + "\n");
     }
 
     private void addSampleEvents() {
         String directory = directoryField.getText().trim();
-        String extension = extensionComboBox.getSelectedItem().toString();
 
         if (directory.isEmpty()) {
             directory = "C:\\SampleFolder";
         }
 
-        FileMonitor sampleMonitor = new FileMonitor(directory, extension);
+        FileEvent createEvent = new FileEvent(
+                "sample-create.txt",
+                directory + File.separator + "sample-create.txt",
+                "CREATE",
+                java.time.LocalDateTime.now().toString()
+        );
 
-        FileEvent createEvent = sampleMonitor.createSampleMonitoredEvent("CREATE");
-        FileEvent modifyEvent = sampleMonitor.createSampleMonitoredEvent("MODIFY");
-        FileEvent deleteEvent = sampleMonitor.createSampleMonitoredEvent("DELETE");
+        FileEvent modifyEvent = new FileEvent(
+                "sample-modify.txt",
+                directory + File.separator + "sample-modify.txt",
+                "MODIFY",
+                java.time.LocalDateTime.now().toString()
+        );
+
+        FileEvent deleteEvent = new FileEvent(
+                "sample-delete.txt",
+                directory + File.separator + "sample-delete.txt",
+                "DELETE",
+                java.time.LocalDateTime.now().toString()
+        );
 
         displayedEvents.add(createEvent);
         displayedEvents.add(modifyEvent);
         displayedEvents.add(deleteEvent);
+        hasUnsavedEvents = true;
 
-        eventDisplayArea.append("\nSample monitored events added:\n");
+        eventDisplayArea.append("\nSample events added:\n");
         displayFormattedEvent(createEvent);
         displayFormattedEvent(modifyEvent);
         displayFormattedEvent(deleteEvent);
@@ -335,42 +339,36 @@ public class MainWindow extends JFrame {
 
     private void updateEventCount() {
         eventCountLabel.setText("Event Count: " + displayedEvents.size());
-        eventDisplayArea.append("Current Event Count: " + displayedEvents.size() + "\n");
     }
 
     private void clearEvents() {
         displayedEvents.clear();
-        eventDisplayArea.setText(
-                "Events cleared.\n\n" +
-                        "Steps:\n" +
-                        "1. Click Browse to choose a folder.\n" +
-                        "2. Select or type a file extension.\n" +
-                        "3. Click Start to begin basic monitoring setup.\n" +
-                        "4. Click Sample Events to test event display.\n"
-        );
+        hasUnsavedEvents = false;
+        eventDisplayArea.setText("Events cleared.\n");
         eventCountLabel.setText("Event Count: 0");
     }
 
     private void saveEvents() {
         if (displayedEvents.isEmpty()) {
-            eventDisplayArea.append("\nWrite DB clicked, but there are no events to save yet.\n");
-            eventDisplayArea.append("Event Count: 0\n");
-            eventDisplayArea.append("Real SQLite saving will be completed in a later iteration.\n");
+            JOptionPane.showMessageDialog(this, "There are no events to save.");
             return;
         }
 
-        DatabaseManager databaseManager = new DatabaseManager("filewatcher.db");
-        databaseManager.connect();
+        try {
+            DatabaseManager databaseManager = new DatabaseManager("filewatcher.db");
 
-        for (FileEvent event : displayedEvents) {
-            databaseManager.saveEvent(event);
+            for (FileEvent event : displayedEvents) {
+                databaseManager.saveEvent(event);
+            }
+
+            hasUnsavedEvents = false;
+
+            eventDisplayArea.append("\nSaved " + displayedEvents.size() + " event(s) to SQLite database.\n");
+            JOptionPane.showMessageDialog(this, "Events saved successfully.");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Database save error: " + e.getMessage());
         }
-
-        eventDisplayArea.append("\nWrite DB clicked.\n");
-        eventDisplayArea.append("Placeholder save completed for " + displayedEvents.size() + " event(s).\n");
-        eventDisplayArea.append("Real SQLite saving will be completed in a later iteration.\n");
-
-        updateEventCount();
     }
 
     private void openQueryWindow() {
@@ -382,34 +380,31 @@ public class MainWindow extends JFrame {
         JOptionPane.showMessageDialog(
                 this,
                 "File Watcher System\n" +
-                        "Version 4.0 - Iteration 4\n\n" +
+                        "Version 5.0 - Iteration 5\n\n" +
                         "Developers:\n" +
                         "Rohullah Babakarkhail\n" +
                         "Kalsoom Babakarkhail\n\n" +
                         "Current Features:\n" +
-                        "- GUI with menu strip and toolbar buttons\n" +
-                        "- Improved labels and tooltips\n" +
-                        "- Browse button for folder selection\n" +
-                        "- Directory validation\n" +
-                        "- Basic WatchService setup\n" +
-                        "- Extension filter value passed to FileMonitor\n" +
-                        "- Sample CREATE, MODIFY, and DELETE events\n" +
-                        "- Clear Events button\n" +
-                        "- Event count display\n" +
-                        "- Placeholder database save message\n\n" +
-                        "Future Features:\n" +
-                        "- Full real-time event monitoring loop\n" +
-                        "- SQLite database saving\n" +
-                        "- Real database query results",
+                        "- Real WatchService monitoring loop\n" +
+                        "- Real file events displayed in GUI\n" +
+                        "- Extension filtering\n" +
+                        "- SQLite event saving\n" +
+                        "- Basic database query window\n\n" +
+                        "Iteration 6 will focus on final testing and polishing.",
                 "About",
                 JOptionPane.INFORMATION_MESSAGE
         );
     }
 
     private void handleExit() {
+        if (!hasUnsavedEvents) {
+            System.exit(0);
+            return;
+        }
+
         int choice = JOptionPane.showConfirmDialog(
                 this,
-                "Do you want to save current events to the database before exiting?",
+                "You have unsaved events. Do you want to save before exiting?",
                 "Exit",
                 JOptionPane.YES_NO_CANCEL_OPTION
         );
