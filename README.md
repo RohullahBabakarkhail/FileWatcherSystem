@@ -3,8 +3,7 @@ File Watcher System
 A Java-based file monitoring project that uses a GUI to track file events by selected file extension.
 
 Team member names:
-
-Rohullah Babakarkhail
+Rohullah Babakarkhail, 
 Kalsoom Babakarkhail
 
 Iteration 5 Summary:
@@ -27,5 +26,4 @@ Tested database and query features
 Reviewed GUI messages and usability
 
 Issues encountered:
-
 SQLite JDBC had to be added to IntelliJ before the database features could run.
