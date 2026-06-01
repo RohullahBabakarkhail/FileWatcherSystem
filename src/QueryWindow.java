@@ -1,18 +1,21 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class QueryWindow extends JFrame {
     private JTextField searchField;
     private JComboBox<String> queryTypeBox;
     private JTextArea resultsArea;
+    private DatabaseManager databaseManager;
 
     public QueryWindow() {
+        databaseManager = new DatabaseManager("filewatcher.db");
         setupWindow();
     }
 
     private void setupWindow() {
         setTitle("Query Database");
-        setSize(650, 400);
+        setSize(700, 450);
         setLayout(new BorderLayout(10, 10));
 
         createMenuBar();
@@ -29,7 +32,7 @@ public class QueryWindow extends JFrame {
         JMenuItem clearItem = new JMenuItem("Clear Database");
         JMenuItem closeItem = new JMenuItem("Return to Main Window");
 
-        clearItem.addActionListener(e -> clearDatabasePlaceholder());
+        clearItem.addActionListener(e -> clearDatabase());
         closeItem.addActionListener(e -> dispose());
 
         databaseMenu.add(clearItem);
@@ -49,14 +52,11 @@ public class QueryWindow extends JFrame {
                 "Event Type",
                 "Date"
         });
-        queryTypeBox.setToolTipText("Choose the type of database query to run later.");
 
         searchField = new JTextField();
-        searchField.setToolTipText("Enter the value to search for.");
 
         JButton searchButton = new JButton("Search");
-        searchButton.setToolTipText("Placeholder search button for future database queries.");
-        searchButton.addActionListener(e -> searchPlaceholder());
+        searchButton.addActionListener(e -> runQuery());
 
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -67,30 +67,74 @@ public class QueryWindow extends JFrame {
 
         resultsArea = new JTextArea();
         resultsArea.setEditable(false);
-        resultsArea.setToolTipText("Future database query results will appear here.");
-        resultsArea.setText(
-                "Query Database Window\n" +
-                        "Iteration 4 placeholder.\n" +
-                        "Real SQLite query results will be added in a later iteration.\n"
-        );
+        resultsArea.setText("Query Database Window\nEnter a value and click Search.\n");
 
         add(topPanel, BorderLayout.NORTH);
         add(new JScrollPane(resultsArea), BorderLayout.CENTER);
         add(searchButton, BorderLayout.SOUTH);
     }
 
-    private void searchPlaceholder() {
+    private void runQuery() {
         String queryType = queryTypeBox.getSelectedItem().toString();
-        String value = searchField.getText();
+        String value = searchField.getText().trim();
 
-        resultsArea.append("\nSearch clicked.\n");
-        resultsArea.append("Query Type: " + queryType + "\n");
-        resultsArea.append("Search Value: " + value + "\n");
-        resultsArea.append("Placeholder only. Real SQLite query logic will be added later.\n");
+        if (value.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a search value.");
+            return;
+        }
+
+        try {
+            List<FileEvent> results;
+
+            if (queryType.equals("Extension")) {
+                results = databaseManager.getEventsByExtension(value);
+            } else if (queryType.equals("File Name")) {
+                results = databaseManager.getEventsByFileName(value);
+            } else if (queryType.equals("Event Type")) {
+                results = databaseManager.getEventsByEventType(value);
+            } else {
+                results = databaseManager.getEventsByDate(value);
+            }
+
+            displayResults(results);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Query error: " + e.getMessage());
+        }
     }
 
-    private void clearDatabasePlaceholder() {
-        resultsArea.append("\nClear Database clicked.\n");
-        resultsArea.append("Placeholder only. Real database clearing will be added later.\n");
+    private void displayResults(List<FileEvent> results) {
+        resultsArea.setText("");
+
+        if (results.isEmpty()) {
+            resultsArea.append("No matching records found.\n");
+            return;
+        }
+
+        resultsArea.append("Results found: " + results.size() + "\n\n");
+
+        for (FileEvent event : results) {
+            resultsArea.append("------------------------------\n");
+            resultsArea.append(event.toString());
+            resultsArea.append("\n");
+        }
+    }
+
+    private void clearDatabase() {
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to clear the database?",
+                "Clear Database",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (choice == JOptionPane.YES_OPTION) {
+            try {
+                databaseManager.clearDatabase();
+                resultsArea.setText("Database cleared.\n");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Clear database error: " + e.getMessage());
+            }
+        }
     }
 }
