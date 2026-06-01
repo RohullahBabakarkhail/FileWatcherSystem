@@ -1,27 +1,31 @@
+File Watcher System
+
 A Java-based file monitoring project that uses a GUI to track file events by selected file extension.
 
 Team member names:
 
-Rohullah Babakarkhail,
+Rohullah Babakarkhail
 Kalsoom Babakarkhail
 
-Iteration 4 Summary:
+Iteration 5 Summary:
 
-During Iteration 4, we added basic WatchService setup, connected the selected directory and extension to FileMonitor, improved sample event creation, added a Clear Events button, improved the event display area, and updated the About window and tooltips.
+During Iteration 5, we moved the File Watcher System closer to the final version. We added real WatchService monitoring, displayed file events in the GUI, applied extension filtering, and added SQLite database saving and query features.
 
 Completed work:
 
-Added basic WatchService setup
-Connected FileMonitor to the selected directory
-Improved extension filtering
-Added basic monitored event creation
-Improved event display area
-Added Clear Events button
-Improved Write DB placeholder
+Implemented real WatchService monitoring loop
+Displayed real monitored events in the GUI
+Applied extension filtering to file events
+Saved file events to SQLite database
+Improved Write DB success and error messages
+Added basic database query logic
+Added clear database functionality
+Improved exit save prompt
 Updated FileWatcherTest
-Improved About window
-Improved GUI usability and tooltips
+Improved Query Window layout and results display
+Tested database and query features
+Reviewed GUI messages and usability
 
 Issues encountered:
 
-Some features are still placeholders. Full real-time monitoring and SQLite database saving will be completed in later iterations.
+SQLite JDBC had to be added to IntelliJ before the database features could run.
