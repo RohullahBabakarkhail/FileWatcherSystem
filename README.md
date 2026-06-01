@@ -12,19 +12,29 @@ During Iteration 5, we moved the File Watcher System closer to the final version
 
 Completed work:
 
-Implemented real WatchService monitoring loop
+-Implemented real WatchService monitoring loop
 
-Displayed real monitored events in the GUI
-Applied extension filtering to file events
-Saved file events to SQLite database
-Improved Write DB success and error messages
-Added basic database query logic
-Added clear database functionality
-Improved exit save prompt
-Updated FileWatcherTest
-Improved Query Window layout and results display
-Tested database and query features
-Reviewed GUI messages and usability
+-Displayed real monitored events in the GUI
+
+-Applied extension filtering to file events
+
+-Saved file events to SQLite database
+
+-Improved Write DB success and error messages
+
+-Added basic database query logic
+
+-Added clear database functionality
+
+-Improved exit save prompt
+
+-Updated FileWatcherTest
+
+-Improved Query Window layout and results display
+
+-Tested database and query features
+
+-Reviewed GUI messages and usability
 
 Issues encountered:
 SQLite JDBC had to be added to IntelliJ before the database features could run.
