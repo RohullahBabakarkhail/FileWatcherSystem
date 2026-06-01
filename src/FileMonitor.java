@@ -1,8 +1,11 @@
+import javax.swing.SwingUtilities;
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.time.LocalDateTime;
 
@@ -11,17 +14,24 @@ public class FileMonitor {
     private String extensionFilter;
     private boolean isMonitoring;
     private WatchService watchService;
+    private Thread monitorThread;
+    private FileEventListener listener;
 
-    public FileMonitor(String directoryPath, String extensionFilter) {
+    public FileMonitor(String directoryPath, String extensionFilter, FileEventListener listener) {
         this.directoryPath = directoryPath;
         this.extensionFilter = extensionFilter;
+        this.listener = listener;
         this.isMonitoring = false;
     }
 
     public void startMonitoring() {
+        if (isMonitoring) {
+            sendMessage("Monitoring is already running.");
+            return;
+        }
+
         try {
             Path path = Paths.get(directoryPath);
-
             watchService = FileSystems.getDefault().newWatchService();
 
             path.register(
@@ -33,13 +43,72 @@ public class FileMonitor {
 
             isMonitoring = true;
 
-            System.out.println("Basic WatchService setup complete.");
-            System.out.println("Monitoring directory: " + directoryPath);
-            System.out.println("Extension filter: " + extensionFilter);
+            monitorThread = new Thread(this::processEvents);
+            monitorThread.setDaemon(true);
+            monitorThread.start();
+
+            sendMessage("Real WatchService monitoring started.");
+            sendMessage("Directory: " + directoryPath);
+            sendMessage("Extension filter: " + extensionFilter);
 
         } catch (Exception e) {
             isMonitoring = false;
-            System.out.println("Error starting WatchService: " + e.getMessage());
+            sendMessage("Error starting monitoring: " + e.getMessage());
+        }
+    }
+
+    private void processEvents() {
+        while (isMonitoring) {
+            try {
+                WatchKey key = watchService.take();
+
+                for (WatchEvent<?> event : key.pollEvents()) {
+                    WatchEvent.Kind<?> kind = event.kind();
+
+                    if (kind == StandardWatchEventKinds.OVERFLOW) {
+                        continue;
+                    }
+
+                    Path fileNamePath = (Path) event.context();
+                    String fileName = fileNamePath.toString();
+
+                    if (!matchesExtension(fileName)) {
+                        continue;
+                    }
+
+                    String eventType = convertEventType(kind);
+                    String absolutePath = directoryPath + File.separator + fileName;
+
+                    FileEvent fileEvent = createEvent(fileName, absolutePath, eventType);
+                    sendFileEvent(fileEvent);
+                }
+
+                boolean valid = key.reset();
+
+                if (!valid) {
+                    sendMessage("Watch key is no longer valid.");
+                    stopMonitoring();
+                    break;
+                }
+
+            } catch (Exception e) {
+                if (isMonitoring) {
+                    sendMessage("Monitoring error: " + e.getMessage());
+                }
+                break;
+            }
+        }
+    }
+
+    private String convertEventType(WatchEvent.Kind<?> kind) {
+        if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+            return "CREATE";
+        } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+            return "MODIFY";
+        } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+            return "DELETE";
+        } else {
+            return "UNKNOWN";
         }
     }
 
@@ -51,10 +120,10 @@ public class FileMonitor {
                 watchService.close();
             }
 
-            System.out.println("Monitoring stopped.");
+            sendMessage("Monitoring stopped.");
 
         } catch (Exception e) {
-            System.out.println("Error stopping WatchService: " + e.getMessage());
+            sendMessage("Error stopping monitoring: " + e.getMessage());
         }
     }
 
@@ -81,26 +150,16 @@ public class FileMonitor {
         return fileName.toLowerCase().endsWith(cleanExtension.toLowerCase());
     }
 
-    public FileEvent createSampleMonitoredEvent(String eventType) {
-        String fileName = "iteration4-sample.txt";
-
-        if (!matchesExtension(fileName)) {
-            String cleanExtension = extensionFilter;
-
-            if (cleanExtension == null || cleanExtension.trim().isEmpty()
-                    || cleanExtension.equalsIgnoreCase("All Files")) {
-                cleanExtension = ".txt";
-            }
-
-            if (!cleanExtension.startsWith(".")) {
-                cleanExtension = "." + cleanExtension;
-            }
-
-            fileName = "iteration4-sample" + cleanExtension;
+    private void sendFileEvent(FileEvent event) {
+        if (listener != null) {
+            SwingUtilities.invokeLater(() -> listener.onFileEvent(event));
         }
+    }
 
-        String path = directoryPath + File.separator + fileName;
-        return createEvent(fileName, path, eventType);
+    private void sendMessage(String message) {
+        if (listener != null) {
+            SwingUtilities.invokeLater(() -> listener.onMonitorMessage(message));
+        }
     }
 
     public boolean isMonitoring() {
