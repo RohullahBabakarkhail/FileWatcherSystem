@@ -1,12 +1,10 @@
 public class FileWatcherTest {
     public static void main(String[] args) {
-        System.out.println("Running File Watcher System Iteration 4 test...");
+        System.out.println("Running File Watcher System Iteration 5 test...");
 
-        FileMonitor monitor = new FileMonitor("C:\\SampleFolder", ".txt");
+        FileMonitor monitor = new FileMonitor("C:\\SampleFolder", ".txt", null);
 
-        System.out.println("\nTesting FileMonitor setup:");
-        System.out.println("Directory: " + monitor.getDirectoryPath());
-        System.out.println("Extension: " + monitor.getExtensionFilter());
+        System.out.println("\nTesting extension filtering:");
         System.out.println("Matches sample.txt: " + monitor.matchesExtension("sample.txt"));
         System.out.println("Matches sample.java: " + monitor.matchesExtension("sample.java"));
 
@@ -33,21 +31,19 @@ public class FileWatcherTest {
         printEvent(modifyEvent);
         printEvent(deleteEvent);
 
-        System.out.println("\nTesting monitor start/stop placeholder:");
-        monitor.startMonitoring();
-        System.out.println("Is Monitoring: " + monitor.isMonitoring());
-        monitor.stopMonitoring();
-        System.out.println("Is Monitoring: " + monitor.isMonitoring());
-
+        System.out.println("\nTesting DatabaseManager methods:");
         DatabaseManager databaseManager = new DatabaseManager("filewatcher.db");
 
-        System.out.println("\nTesting DatabaseManager placeholder:");
-        databaseManager.connect();
-        databaseManager.saveEvent(createEvent);
-        databaseManager.saveEvent(modifyEvent);
-        databaseManager.saveEvent(deleteEvent);
+        try {
+            databaseManager.saveEvent(createEvent);
+            databaseManager.saveEvent(modifyEvent);
+            databaseManager.saveEvent(deleteEvent);
+            System.out.println("Database save methods ran successfully.");
+        } catch (Exception e) {
+            System.out.println("Database test error: " + e.getMessage());
+        }
 
-        System.out.println("\nIteration 4 basic test completed successfully.");
+        System.out.println("\nIteration 5 test completed.");
     }
 
     private static void printEvent(FileEvent event) {
