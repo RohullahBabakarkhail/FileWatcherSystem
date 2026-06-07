@@ -3,38 +3,28 @@ File Watcher System
 A Java-based file monitoring project that uses a GUI to track file events by selected file extension.
 
 Team member names:
-Rohullah Babakarkhail, 
+
+Rohullah Babakarkhail
 Kalsoom Babakarkhail
 
-Iteration 5 Summary:
+Final Iteration Summary:
 
-During Iteration 5, we moved the File Watcher System closer to the final version. We added real WatchService monitoring, displayed file events in the GUI, applied extension filtering, and added SQLite database saving and query features.
+During Iteration 6, we completed the final version of the File Watcher System. We tested real file monitoring, extension filtering, SQLite database saving, database queries, clear database behavior, exit save prompt, and GUI usability. We also added support for CREATE, CHANGE, DELETE, and RENAME event types.
 
 Completed work:
-
--Implemented real WatchService monitoring loop
-
--Displayed real monitored events in the GUI
-
--Applied extension filtering to file events
-
--Saved file events to SQLite database
-
--Improved Write DB success and error messages
-
--Added basic database query logic
-
--Added clear database functionality
-
--Improved exit save prompt
-
--Updated FileWatcherTest
-
--Improved Query Window layout and results display
-
--Tested database and query features
-
--Reviewed GUI messages and usability
+- Final tested real file monitoring
+- Finalized extension filtering
+- Finalized SQLite database saving
+- Finalized database query feature
+- Finalized Clear Database feature
+- Finalized exit save prompt
+- Cleaned up GUI usability
+- Completed final testing and bug fixes
+- Added support for CREATE, CHANGE, DELETE, and RENAME events
+- Improved final event display formatting
+- Updated final README
+- Prepared final screenshots and submission files
 
 Issues encountered:
-SQLite JDBC had to be added to IntelliJ before the database features could run.
+Java WatchService does not directly provide a rename event, so rename was handled by detecting a quick delete and create event.  
+Some final testing was needed to make sure monitoring, saving, and querying worked together.
