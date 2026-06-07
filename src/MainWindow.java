@@ -109,7 +109,7 @@ public class MainWindow extends JFrame implements FileEventListener {
         startButton.setToolTipText("Start real file monitoring for the selected directory.");
         stopButton.setToolTipText("Stop the current monitoring session.");
         saveButton.setToolTipText("Save displayed events to SQLite database.");
-        sampleEventButton.setToolTipText("Add sample CREATE, MODIFY, and DELETE file events.");
+        sampleEventButton.setToolTipText("Add sample CREATE, CHANGE, DELETE, and RENAME file events.");
         clearEventsButton.setToolTipText("Clear all displayed events and reset the event count.");
 
         startButton.addActionListener(e -> startMonitoring());
@@ -184,12 +184,14 @@ public class MainWindow extends JFrame implements FileEventListener {
         eventDisplayArea.setEditable(false);
         eventDisplayArea.setText(
                 "File Watcher System ready.\n" +
-                        "Iteration 5 adds real monitoring and SQLite save/query support.\n\n" +
+                        "Final Version - Iteration 6\n\n" +
                         "Steps:\n" +
                         "1. Click Browse to choose a folder.\n" +
                         "2. Select or type a file extension.\n" +
-                        "3. Click Start to begin real monitoring.\n" +
-                        "4. Create, modify, or delete a matching file in the folder.\n"
+                        "3. Click Start to begin monitoring.\n" +
+                        "4. Create, change, delete, or rename a matching file in the folder.\n" +
+                        "5. Click Write DB to save events.\n" +
+                        "6. Use Database > Query Database to search saved events.\n"
         );
 
         eventCountLabel = new JLabel("Event Count: 0");
@@ -278,7 +280,7 @@ public class MainWindow extends JFrame implements FileEventListener {
         displayedEvents.add(event);
         hasUnsavedEvents = true;
 
-        eventDisplayArea.append("\nReal monitored event detected:\n");
+        eventDisplayArea.append("\nFile event detected:\n");
         displayFormattedEvent(event);
         updateEventCount();
     }
@@ -302,10 +304,10 @@ public class MainWindow extends JFrame implements FileEventListener {
                 java.time.LocalDateTime.now().toString()
         );
 
-        FileEvent modifyEvent = new FileEvent(
-                "sample-modify.txt",
-                directory + File.separator + "sample-modify.txt",
-                "MODIFY",
+        FileEvent changeEvent = new FileEvent(
+                "sample-change.txt",
+                directory + File.separator + "sample-change.txt",
+                "CHANGE",
                 java.time.LocalDateTime.now().toString()
         );
 
@@ -316,15 +318,24 @@ public class MainWindow extends JFrame implements FileEventListener {
                 java.time.LocalDateTime.now().toString()
         );
 
+        FileEvent renameEvent = new FileEvent(
+                "sample-renamed.txt",
+                directory + File.separator + "sample-renamed.txt",
+                "RENAME",
+                java.time.LocalDateTime.now().toString()
+        );
+
         displayedEvents.add(createEvent);
-        displayedEvents.add(modifyEvent);
+        displayedEvents.add(changeEvent);
         displayedEvents.add(deleteEvent);
+        displayedEvents.add(renameEvent);
         hasUnsavedEvents = true;
 
         eventDisplayArea.append("\nSample events added:\n");
         displayFormattedEvent(createEvent);
-        displayFormattedEvent(modifyEvent);
+        displayFormattedEvent(changeEvent);
         displayFormattedEvent(deleteEvent);
+        displayFormattedEvent(renameEvent);
 
         updateEventCount();
     }
@@ -380,17 +391,20 @@ public class MainWindow extends JFrame implements FileEventListener {
         JOptionPane.showMessageDialog(
                 this,
                 "File Watcher System\n" +
-                        "Version 5.0 - Iteration 5\n\n" +
+                        "Version 6.0 - Final Iteration\n\n" +
                         "Developers:\n" +
                         "Rohullah Babakarkhail\n" +
                         "Kalsoom Babakarkhail\n\n" +
-                        "Current Features:\n" +
-                        "- Real WatchService monitoring loop\n" +
-                        "- Real file events displayed in GUI\n" +
-                        "- Extension filtering\n" +
-                        "- SQLite event saving\n" +
-                        "- Basic database query window\n\n" +
-                        "Iteration 6 will focus on final testing and polishing.",
+                        "Features:\n" +
+                        "- GUI with menu strip and toolbar buttons\n" +
+                        "- Directory selection\n" +
+                        "- File extension filtering\n" +
+                        "- Java WatchService file monitoring for CREATE, CHANGE, DELETE, and RENAME events\n" +
+                        "- File event display\n" +
+                        "- SQLite database saving\n" +
+                        "- Database query window\n" +
+                        "- Clear database option\n" +
+                        "- Exit save prompt",
                 "About",
                 JOptionPane.INFORMATION_MESSAGE
         );
