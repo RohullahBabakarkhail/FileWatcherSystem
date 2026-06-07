@@ -17,11 +17,16 @@ public class FileMonitor {
     private Thread monitorThread;
     private FileEventListener listener;
 
+    private String lastDeletedFileName;
+    private long lastDeletedTime;
+
     public FileMonitor(String directoryPath, String extensionFilter, FileEventListener listener) {
         this.directoryPath = directoryPath;
         this.extensionFilter = extensionFilter;
         this.listener = listener;
         this.isMonitoring = false;
+        this.lastDeletedFileName = null;
+        this.lastDeletedTime = 0;
     }
 
     public void startMonitoring() {
@@ -47,7 +52,7 @@ public class FileMonitor {
             monitorThread.setDaemon(true);
             monitorThread.start();
 
-            sendMessage("Real WatchService monitoring started.");
+            sendMessage("Monitoring started successfully.");
             sendMessage("Directory: " + directoryPath);
             sendMessage("Extension filter: " + extensionFilter);
 
@@ -76,8 +81,20 @@ public class FileMonitor {
                         continue;
                     }
 
-                    String eventType = convertEventType(kind);
                     String absolutePath = directoryPath + File.separator + fileName;
+                    String eventType = convertEventType(kind);
+
+                    if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                        lastDeletedFileName = fileName;
+                        lastDeletedTime = System.currentTimeMillis();
+                    }
+
+                    if (kind == StandardWatchEventKinds.ENTRY_CREATE && isPossibleRename()) {
+                        eventType = "RENAME";
+                        sendMessage("Rename detected: " + lastDeletedFileName + " changed to " + fileName);
+                        lastDeletedFileName = null;
+                        lastDeletedTime = 0;
+                    }
 
                     FileEvent fileEvent = createEvent(fileName, absolutePath, eventType);
                     sendFileEvent(fileEvent);
@@ -100,11 +117,16 @@ public class FileMonitor {
         }
     }
 
+    private boolean isPossibleRename() {
+        long currentTime = System.currentTimeMillis();
+        return lastDeletedFileName != null && currentTime - lastDeletedTime <= 3000;
+    }
+
     private String convertEventType(WatchEvent.Kind<?> kind) {
         if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
             return "CREATE";
         } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-            return "MODIFY";
+            return "CHANGE";
         } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
             return "DELETE";
         } else {
