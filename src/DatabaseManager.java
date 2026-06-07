@@ -41,6 +41,7 @@ public class DatabaseManager {
 
         try (Connection connection = connect();
              PreparedStatement statement = connection.prepareStatement(sql)) {
+
             statement.setString(1, event.getFileName());
             statement.setString(2, event.getAbsolutePath());
             statement.setString(3, event.getEventType());
@@ -63,6 +64,7 @@ public class DatabaseManager {
 
         try (Connection connection = connect();
              PreparedStatement statement = connection.prepareStatement(sql)) {
+
             statement.setString(1, "%" + cleanExtension);
             return getEventsFromStatement(statement);
         }
@@ -76,6 +78,7 @@ public class DatabaseManager {
 
         try (Connection connection = connect();
              PreparedStatement statement = connection.prepareStatement(sql)) {
+
             statement.setString(1, "%" + fileName + "%");
             return getEventsFromStatement(statement);
         }
@@ -89,6 +92,7 @@ public class DatabaseManager {
 
         try (Connection connection = connect();
              PreparedStatement statement = connection.prepareStatement(sql)) {
+
             statement.setString(1, eventType.toUpperCase());
             return getEventsFromStatement(statement);
         }
@@ -102,6 +106,7 @@ public class DatabaseManager {
 
         try (Connection connection = connect();
              PreparedStatement statement = connection.prepareStatement(sql)) {
+
             statement.setString(1, "%" + date + "%");
             return getEventsFromStatement(statement);
         }
