@@ -4,6 +4,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Main GUI window for the File Watcher System.
+ * Users can choose a directory, select an extension, start/stop monitoring,
+ * save events to SQLite, and open the Query Window.
+ *
+ * @author Rohullah Babakarkhail
+ * @author Kalsoom Babakarkhail
+ */
 public class MainWindow extends JFrame implements FileEventListener {
     private JTextField directoryField;
     private JComboBox<String> extensionComboBox;
@@ -22,15 +30,21 @@ public class MainWindow extends JFrame implements FileEventListener {
     private FileMonitor fileMonitor;
     private boolean hasUnsavedEvents;
 
+    /**
+     * Creates the MainWindow.
+     */
     public MainWindow() {
         displayedEvents = new ArrayList<>();
         hasUnsavedEvents = false;
         setupWindow();
     }
 
+    /**
+     * Sets up the main window.
+     */
     private void setupWindow() {
         setTitle("File Watcher System");
-        setSize(950, 625);
+        setSize(1000, 650);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -46,6 +60,9 @@ public class MainWindow extends JFrame implements FileEventListener {
         });
     }
 
+    /**
+     * Creates the menu strip.
+     */
     private void createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
@@ -97,6 +114,9 @@ public class MainWindow extends JFrame implements FileEventListener {
         setJMenuBar(menuBar);
     }
 
+    /**
+     * Creates toolbar buttons.
+     */
     private void createToolbar() {
         JToolBar toolBar = new JToolBar();
 
@@ -129,6 +149,9 @@ public class MainWindow extends JFrame implements FileEventListener {
         add(toolBar, BorderLayout.NORTH);
     }
 
+    /**
+     * Creates the main input and display panel.
+     */
     private void createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         JPanel inputPanel = new JPanel(new GridBagLayout());
@@ -191,7 +214,7 @@ public class MainWindow extends JFrame implements FileEventListener {
                         "3. Click Start to begin monitoring.\n" +
                         "4. Create, change, delete, or rename a matching file in the folder.\n" +
                         "5. Click Write DB to save events.\n" +
-                        "6. Use Database > Query Database to search saved events.\n"
+                        "6. Use Database > Query Database to search, export, and email saved results.\n"
         );
 
         eventCountLabel = new JLabel("Event Count: 0");
@@ -204,10 +227,16 @@ public class MainWindow extends JFrame implements FileEventListener {
         add(panel, BorderLayout.CENTER);
     }
 
+    /**
+     * Shows the main window.
+     */
     public void showWindow() {
         setVisible(true);
     }
 
+    /**
+     * Opens a folder chooser for selecting the monitored directory.
+     */
     private void browseDirectory() {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Choose Directory to Monitor");
@@ -225,6 +254,12 @@ public class MainWindow extends JFrame implements FileEventListener {
         }
     }
 
+    /**
+     * Validates that a directory path exists and is a folder.
+     *
+     * @param directoryPath the directory path
+     * @return true if the path is valid
+     */
     private boolean isDirectoryValid(String directoryPath) {
         if (directoryPath == null || directoryPath.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please choose or enter a directory first.");
@@ -246,6 +281,9 @@ public class MainWindow extends JFrame implements FileEventListener {
         return true;
     }
 
+    /**
+     * Starts file monitoring.
+     */
     private void startMonitoring() {
         String directory = directoryField.getText().trim();
         String extension = extensionComboBox.getSelectedItem().toString();
@@ -266,6 +304,9 @@ public class MainWindow extends JFrame implements FileEventListener {
         eventDisplayArea.append("Extension: " + extension + "\n");
     }
 
+    /**
+     * Stops file monitoring.
+     */
     private void stopMonitoring() {
         if (fileMonitor != null) {
             fileMonitor.stopMonitoring();
@@ -275,6 +316,11 @@ public class MainWindow extends JFrame implements FileEventListener {
         stopButton.setEnabled(false);
     }
 
+    /**
+     * Handles a detected file event from FileMonitor.
+     *
+     * @param event the detected file event
+     */
     @Override
     public void onFileEvent(FileEvent event) {
         displayedEvents.add(event);
@@ -285,11 +331,19 @@ public class MainWindow extends JFrame implements FileEventListener {
         updateEventCount();
     }
 
+    /**
+     * Handles monitor messages.
+     *
+     * @param message the monitor message
+     */
     @Override
     public void onMonitorMessage(String message) {
         eventDisplayArea.append("\n" + message + "\n");
     }
 
+    /**
+     * Adds sample events for testing.
+     */
     private void addSampleEvents() {
         String directory = directoryField.getText().trim();
 
@@ -297,33 +351,10 @@ public class MainWindow extends JFrame implements FileEventListener {
             directory = "C:\\SampleFolder";
         }
 
-        FileEvent createEvent = new FileEvent(
-                "sample-create.txt",
-                directory + File.separator + "sample-create.txt",
-                "CREATE",
-                java.time.LocalDateTime.now().toString()
-        );
-
-        FileEvent changeEvent = new FileEvent(
-                "sample-change.txt",
-                directory + File.separator + "sample-change.txt",
-                "CHANGE",
-                java.time.LocalDateTime.now().toString()
-        );
-
-        FileEvent deleteEvent = new FileEvent(
-                "sample-delete.txt",
-                directory + File.separator + "sample-delete.txt",
-                "DELETE",
-                java.time.LocalDateTime.now().toString()
-        );
-
-        FileEvent renameEvent = new FileEvent(
-                "sample-renamed.txt",
-                directory + File.separator + "sample-renamed.txt",
-                "RENAME",
-                java.time.LocalDateTime.now().toString()
-        );
+        FileEvent createEvent = new FileEvent("sample-create.txt", directory + File.separator + "sample-create.txt", "CREATE", java.time.LocalDateTime.now().toString());
+        FileEvent changeEvent = new FileEvent("sample-change.txt", directory + File.separator + "sample-change.txt", "CHANGE", java.time.LocalDateTime.now().toString());
+        FileEvent deleteEvent = new FileEvent("sample-delete.txt", directory + File.separator + "sample-delete.txt", "DELETE", java.time.LocalDateTime.now().toString());
+        FileEvent renameEvent = new FileEvent("sample-renamed.txt", directory + File.separator + "sample-renamed.txt", "RENAME", java.time.LocalDateTime.now().toString());
 
         displayedEvents.add(createEvent);
         displayedEvents.add(changeEvent);
@@ -340,18 +371,30 @@ public class MainWindow extends JFrame implements FileEventListener {
         updateEventCount();
     }
 
+    /**
+     * Displays a file event in the event display area.
+     *
+     * @param event the file event to display
+     */
     private void displayFormattedEvent(FileEvent event) {
         eventDisplayArea.append("------------------------------\n");
         eventDisplayArea.append("File Name: " + event.getFileName() + "\n");
+        eventDisplayArea.append("Extension: " + event.getFileExtension() + "\n");
         eventDisplayArea.append("Path: " + event.getAbsolutePath() + "\n");
-        eventDisplayArea.append("Event Type: " + event.getEventType() + "\n");
+        eventDisplayArea.append("Activity: " + event.getEventType() + "\n");
         eventDisplayArea.append("Date/Time: " + event.getEventDateTime() + "\n");
     }
 
+    /**
+     * Updates the event count label.
+     */
     private void updateEventCount() {
         eventCountLabel.setText("Event Count: " + displayedEvents.size());
     }
 
+    /**
+     * Clears displayed events.
+     */
     private void clearEvents() {
         displayedEvents.clear();
         hasUnsavedEvents = false;
@@ -359,6 +402,9 @@ public class MainWindow extends JFrame implements FileEventListener {
         eventCountLabel.setText("Event Count: 0");
     }
 
+    /**
+     * Saves displayed events to the SQLite database.
+     */
     private void saveEvents() {
         if (displayedEvents.isEmpty()) {
             JOptionPane.showMessageDialog(this, "There are no events to save.");
@@ -382,11 +428,17 @@ public class MainWindow extends JFrame implements FileEventListener {
         }
     }
 
+    /**
+     * Opens the Query Window.
+     */
     private void openQueryWindow() {
         QueryWindow queryWindow = new QueryWindow();
         queryWindow.setVisible(true);
     }
 
+    /**
+     * Shows the About window.
+     */
     private void showAbout() {
         JOptionPane.showMessageDialog(
                 this,
@@ -396,20 +448,19 @@ public class MainWindow extends JFrame implements FileEventListener {
                         "Rohullah Babakarkhail\n" +
                         "Kalsoom Babakarkhail\n\n" +
                         "Features:\n" +
-                        "- GUI with menu strip and toolbar buttons\n" +
-                        "- Directory selection\n" +
-                        "- File extension filtering\n" +
-                        "- Java WatchService file monitoring for CREATE, CHANGE, DELETE, and RENAME events\n" +
-                        "- File event display\n" +
+                        "- Java WatchService monitoring\n" +
                         "- SQLite database saving\n" +
-                        "- Database query window\n" +
-                        "- Clear database option\n" +
-                        "- Exit save prompt",
+                        "- Query by extension, activity, path, and date range\n" +
+                        "- CSV export\n" +
+                        "- Email generated CSV files",
                 "About",
                 JOptionPane.INFORMATION_MESSAGE
         );
     }
 
+    /**
+     * Handles application exit and asks the user to save unsaved events.
+     */
     private void handleExit() {
         if (!hasUnsavedEvents) {
             System.exit(0);
