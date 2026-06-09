@@ -9,6 +9,13 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.time.LocalDateTime;
 
+/**
+ * Monitors a selected directory for file system events using Java WatchService.
+ * This class detects create, change, delete, and basic rename behavior.
+ *
+ * @author Rohullah Babakarkhail
+ * @author Kalsoom Babakarkhail
+ */
 public class FileMonitor {
     private String directoryPath;
     private String extensionFilter;
@@ -20,6 +27,13 @@ public class FileMonitor {
     private String lastDeletedFileName;
     private long lastDeletedTime;
 
+    /**
+     * Creates a FileMonitor for a directory and extension filter.
+     *
+     * @param directoryPath   the directory to monitor
+     * @param extensionFilter the extension to watch, or All Files
+     * @param listener        listener used to send events to the GUI
+     */
     public FileMonitor(String directoryPath, String extensionFilter, FileEventListener listener) {
         this.directoryPath = directoryPath;
         this.extensionFilter = extensionFilter;
@@ -29,6 +43,9 @@ public class FileMonitor {
         this.lastDeletedTime = 0;
     }
 
+    /**
+     * Starts monitoring the selected directory.
+     */
     public void startMonitoring() {
         if (isMonitoring) {
             sendMessage("Monitoring is already running.");
@@ -62,6 +79,9 @@ public class FileMonitor {
         }
     }
 
+    /**
+     * Processes file system events while monitoring is active.
+     */
     private void processEvents() {
         while (isMonitoring) {
             try {
@@ -117,11 +137,23 @@ public class FileMonitor {
         }
     }
 
+    /**
+     * Checks if a create event happened soon after a delete event.
+     * This is used as a simple way to detect rename behavior.
+     *
+     * @return true if the event may be a rename
+     */
     private boolean isPossibleRename() {
         long currentTime = System.currentTimeMillis();
         return lastDeletedFileName != null && currentTime - lastDeletedTime <= 3000;
     }
 
+    /**
+     * Converts WatchService event kinds into project event labels.
+     *
+     * @param kind the WatchService event kind
+     * @return a readable event type
+     */
     private String convertEventType(WatchEvent.Kind<?> kind) {
         if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
             return "CREATE";
@@ -134,6 +166,9 @@ public class FileMonitor {
         }
     }
 
+    /**
+     * Stops monitoring.
+     */
     public void stopMonitoring() {
         try {
             isMonitoring = false;
@@ -149,11 +184,25 @@ public class FileMonitor {
         }
     }
 
+    /**
+     * Creates a FileEvent object.
+     *
+     * @param fileName  the file name
+     * @param path      the absolute path
+     * @param eventType the activity type
+     * @return a new FileEvent object
+     */
     public FileEvent createEvent(String fileName, String path, String eventType) {
         String dateTime = LocalDateTime.now().toString();
         return new FileEvent(fileName, path, eventType, dateTime);
     }
 
+    /**
+     * Checks whether a file name matches the selected extension filter.
+     *
+     * @param fileName the file name to check
+     * @return true if the file should be displayed
+     */
     public boolean matchesExtension(String fileName) {
         if (extensionFilter == null || extensionFilter.equalsIgnoreCase("All Files")) {
             return true;
@@ -172,26 +221,51 @@ public class FileMonitor {
         return fileName.toLowerCase().endsWith(cleanExtension.toLowerCase());
     }
 
+    /**
+     * Sends a detected FileEvent to the listener.
+     *
+     * @param event the file event
+     */
     private void sendFileEvent(FileEvent event) {
         if (listener != null) {
             SwingUtilities.invokeLater(() -> listener.onFileEvent(event));
         }
     }
 
+    /**
+     * Sends a message to the listener.
+     *
+     * @param message the message to display
+     */
     private void sendMessage(String message) {
         if (listener != null) {
             SwingUtilities.invokeLater(() -> listener.onMonitorMessage(message));
         }
     }
 
+    /**
+     * Checks if monitoring is active.
+     *
+     * @return true if monitoring is active
+     */
     public boolean isMonitoring() {
         return isMonitoring;
     }
 
+    /**
+     * Gets the monitored directory path.
+     *
+     * @return the directory path
+     */
     public String getDirectoryPath() {
         return directoryPath;
     }
 
+    /**
+     * Gets the extension filter.
+     *
+     * @return the extension filter
+     */
     public String getExtensionFilter() {
         return extensionFilter;
     }
